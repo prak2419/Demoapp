@@ -1,0 +1,16 @@
+variables:
+  environment: dev
+  moduleName: 'demoapp'
+  artifactName: 'DemoApp'
+  poolName: buildagent_0
+  resourceGroup: 'aks-pvt-rg'
+  location: 'southeastasia'
+  serviceConnection: 'sc-test-a8'
+  ClientId: '8c1b6209-aa2f-4e7b-9522-83ba30083f75'
+  ingressNamespace: 'ingress-basic'
+  appNamespace: 'worldapp'
+  k8sCluster: 'akspvtdemo01'
+  KVName: akspvtkv01
+  ChartVersion: '3.34.0'
+  IngressIP: '10.47.2.100'
+  ingressRelease: 'nginx-ingress'

@@ -1,0 +1,112 @@
+parameters:
+  artifactName: $(artifactName)
+  ClientId: $(ClientId)
+  KVName: $(KVName)
+  ChartVersion: $(ChartVersion)
+  moduleName: $(moduleName)
+  serviceConnection: $(serviceConnection)
+  resourceGroup: $(resourceGroup)
+  k8sCluster: $(k8sCluster)
+  ingressNamespace: $(ingressNamespace)
+  ingressRelease:  $(ingressRelease)
+  appNamespace: $(appNamespace)
+  environment: $(environment)
+  IngressIP: $(IngressIP)
+
+jobs:
+  - deployment:
+    pool: $(poolName)
+    displayName: 'Deploy app'
+    dependsOn: '${{ parameters.dependsOn }}'
+    condition: '${{ parameters.condition }}'
+    environment: '${{ parameters.environment }}'
+    workspace:
+      clean: all
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: none
+          - task: DownloadBuildArtifacts@1
+            displayName: 'Download Build Artifacts'
+            inputs:
+              buildType: 'current'
+              artifactName: ${{ parameters.artifactName }}
+              downloadType: 'single'
+              downloadPath: $(System.ArtifactsDirectory)
+        
+          #- powershell: |
+             #$env:HELM_EXPERIMENTAL_OCI=1
+            
+             #$response = Invoke-WebRequest -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&client_id=${{ parameters.ClientId }}&resource=https://vault.azure.net" -Method GET -Usebasicparsing -Headers @{Metadata="true"}
+             #$content = $response.Content | ConvertFrom-Json
+             #$ArmToken = $content.access_token
+            
+             #$SP_Name = Get-AzKeyVaultSecret -VaultName ${{ parameters.KVName }} -Name sp-name -AsPlainText
+             #$Sp_Secret = Get-AzKeyVaultSecret -VaultName ${{ parameters.KVName }} -Name sp-secret -AsPlainText
+            
+             #helm registry login $KVName.azurecr.io -u $SP_Name -p $Sp_Secret
+            
+             #helm chart export "${{ parameters.KVName }}.azurecr.io/ingress/ingress-nginx:${{ parameters.ChartVersion }}"
+            #workingDirectory: '$(System.ArtifactsDirectory)'
+            #arguments: '-ClientId ${{ parameters.ClientId }} -KVName ${{ parameters.KVName }} -ChartVersion ${{ parameters.ChartVersion }}'
+            #displayName: 'PowerShell Script'
+          
+          - task: PowerShell@2
+            displayName: 'Download Helm Chart'
+            inputs:
+              targetType: filePath
+              filePath: '$(System.ArtifactsDirectory)\${{ parameters.moduleName }}\${{ parameters.moduleName }}\scripts\gethelmchart.ps1'
+              arguments: '-ClientId ${{ parameters.ClientId }} -KVName ${{ parameters.KVName }} -ChartVersion ${{ parameters.ChartVersion }}'
+              workingDirectory: '$(System.ArtifactsDirectory)'
+          
+          - task: Kubernetes@1
+            displayName: 'Create ingress namespace'
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscriptionEndpoint: ${{ parameters.serviceConnection }}
+              azureResourceGroup: ${{ parameters.resourceGroup }}
+              kubernetesCluster: ${{ parameters.k8sCluster }}
+              useClusterAdmin: true
+              command: create
+              arguments: 'namespace ${{ parameters.ingressNamespace }}'
+
+          - task: HelmDeploy@0
+            displayName: 'Helm Install nginx IC'
+            inputs:
+              azureSubscription: ${{ parameters.serviceConnection }}
+              azureResourceGroup: ${{ parameters.resourceGroup }} 
+              kubernetesCluster: ${{ parameters.k8sCluster }}
+              useClusterAdmin: true 
+              namespace: ${{ parameters.ingressNamespace }} 
+              command: install
+              chartType: FilePath
+              chartPath: '$(System.ArtifactsDirectory)\ingress-nginx'
+              chartVersion: ${{ parameters.ChartVersion }}
+              releaseName: ${{ parameters.ingressRelease }}
+              overrideValues: 'controller.service.loadBalancerIP=${{ parameters.IngressIP }},controller.replicaCount=2'
+              arguments: '-f $(System.ArtifactsDirectory)\${{ parameters.moduleName }}\${{ parameters.moduleName }}\manifests\ingress-config.yaml'
+          
+          - task: Kubernetes@1
+            displayName: 'Create app namespace'
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscriptionEndpoint: ${{ parameters.serviceConnection }}
+              azureResourceGroup: ${{ parameters.resourceGroup }}
+              kubernetesCluster: ${{ parameters.k8sCluster }}
+              useClusterAdmin: true
+              command: create
+              arguments: 'namespace ${{ parameters.appNamespace }}'
+          
+          - task: Kubernetes@1
+            displayName: 'Deploy application to AKS'
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscriptionEndpoint: ${{ parameters.serviceConnection }}
+              azureResourceGroup: ${{ parameters.resourceGroup }}
+              kubernetesCluster: ${{ parameters.k8sCluster }}
+              useClusterAdmin: true
+              namespace: ${{ parameters.appNamespace }}
+              command: apply
+              useConfigurationFile: true
+              configuration: '$(System.ArtifactsDirectory)\${{ parameters.moduleName }}\${{ parameters.moduleName }}\manifests\sample-app.yaml'

@@ -1,0 +1,30 @@
+parameters:
+  moduleName: $(moduleName)
+  artifactName: $(artifactName)
+
+#Build Jobs
+jobs:
+  - job: 'BuildModule_AKSDemo'
+    pool: buildagent_0
+    displayName: 'Build Packages'
+    workspace:
+      clean: all
+    steps:
+    - task: CmdLine@2
+      displayName: Checkout $(Build.SourceBranchName)
+      inputs:
+        script: 'git checkout $(Build.SourceBranchName)'
+
+    - task: CopyFiles@2
+      displayName: 'Filter folders'
+      inputs:
+        Contents: |
+          ${{ parameters.moduleName }}\**
+        targetFolder: $(Build.ArtifactStagingDirectory)
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifacts'
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: '${{ parameters.artifactName }}'
+        publishLocation: 'Container'
