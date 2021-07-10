@@ -5,7 +5,7 @@ controller:
   nodeSelector:
     beta.kubernetes.io/os: "linux"
   image:
-    repository: akspvtacr002.azurecr.io/ingress/controller
+    repository: <ACR_Name>.azurecr.io/ingress/controller
     digest: ""
   affinity:
     nodeAffinity:
@@ -25,7 +25,7 @@ controller:
   admissionWebhooks:
     patch:
       image:
-        repository: akspvtacr002.azurecr.io/ingress/kube-webhook-certgen
+        repository: <ACR_Name>.azurecr.io/ingress/kube-webhook-certgen
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/master
@@ -35,7 +35,7 @@ defaultBackend:
   nodeSelector:
     beta.kubernetes.io/os: "linux"
   image:
-    repository: akspvtacr002.azurecr.io/ingress/defaultbackend
+    repository: <ACR_Name>.azurecr.io/ingress/defaultbackend
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:

@@ -1,11 +1,12 @@
 parameters:
   moduleName: $(moduleName)
   artifactName: $(artifactName)
+  poolName: $(poolName)
 
 #Build Jobs
 jobs:
   - job: 'BuildModule_AKSDemo'
-    pool: buildagent_0
+    pool: ${{ parameters.poolName }}
     displayName: 'Build Packages'
     workspace:
       clean: all

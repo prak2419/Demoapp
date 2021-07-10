@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: aks-helloworld-two
-        image: akspvtacr002.azurecr.io/aks-helloworld:v1
+        image: <ACR_Name>.azurecr.io/aks-helloworld:v1
         resources:
           requests:
             memory: "2Gi"

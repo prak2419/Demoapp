@@ -3,14 +3,15 @@ variables:
   moduleName: 'demoapp'
   artifactName: 'DemoApp'
   poolName: buildagent_0
-  resourceGroup: 'aks-pvt-rg'
-  location: 'southeastasia'
-  serviceConnection: 'sc-test-a8'
-  ClientId: '8c1b6209-aa2f-4e7b-9522-83ba30083f75'
+  resourceGroup: '<RG_Name>'
+  location: '<Resource_Location>'
+  serviceConnection: '<ServiceConnection_Name>'
+  ClientId: '<MI_Object_id_of_releaseAgent>'
   ingressNamespace: 'ingress-basic'
   appNamespace: 'worldapp'
-  k8sCluster: 'akspvtdemo01'
-  KVName: akspvtkv01
+  k8sCluster: '<AKS_CLuster_Name>'
+  KVName: <KeyVault_Name>
   ChartVersion: '3.34.0'
-  IngressIP: '10.47.2.100'
+  IngressIP: '<Ingress_IP>'
   ingressRelease: 'nginx-ingress'
+  TenantId: '<Tenant_Id>'
