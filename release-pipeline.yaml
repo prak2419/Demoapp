@@ -12,6 +12,7 @@ parameters:
   appNamespace: $(appNamespace)
   environment: $(environment)
   IngressIP: $(IngressIP)
+  TenantId: $(TenantId)
 
 jobs:
   - deployment:
@@ -57,7 +58,7 @@ jobs:
             inputs:
               targetType: filePath
               filePath: '$(System.ArtifactsDirectory)\${{ parameters.moduleName }}\${{ parameters.moduleName }}\scripts\gethelmchart.ps1'
-              arguments: '-ClientId ${{ parameters.ClientId }} -KVName ${{ parameters.KVName }} -ChartVersion ${{ parameters.ChartVersion }}'
+              arguments: '-ClientId ${{ parameters.ClientId }} -KVName ${{ parameters.KVName }} -ChartVersion ${{ parameters.ChartVersion }} -TenantId ${{ parameters.TenantId }}'
               workingDirectory: '$(System.ArtifactsDirectory)'
           
           - task: Kubernetes@1
