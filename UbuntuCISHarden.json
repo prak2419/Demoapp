@@ -1,0 +1,67 @@
+{
+    "type": "Microsoft.VirtualMachineImages",
+    "apiVersion": "2020-02-14",
+    "location": "southeastasia",
+    "dependsOn": [],
+    "tags": {
+        "imagebuilderTemplate": "AzureImageBuilderSIG",
+        "userIdentity": "enabled"
+            },
+        "identity": {
+            "type": "UserAssigned",
+                    "userAssignedIdentities": {
+                    "<imageBuilderMIID>": {}
+                        
+                }
+                },
+    
+    "properties": {
+
+        "buildTimeoutInMinutes" : 80,
+
+        "vmProfile": 
+            {
+            "vmSize": "Standard_D1_v2",
+            "osDiskSizeGB": 30
+            },
+        
+        "source": {
+            "type": "PlatformImage",
+                "publisher": "Canonical",
+                "offer": "UbuntuServer",
+                "sku": "18.04-LTS",
+                "version": "latest"
+        },
+        "customize": [
+		{
+            "type": "Shell",
+            "name": "Sample CIS Hardening",
+            "scriptUri": "https://raw.githubusercontent.com/prak2419/Demoapp/main/CIS_sample_remedy.sh"
+        },
+
+        {
+            "type": "Shell",
+            "name": "Echo command",
+            "inline": [
+                "echo 'This is done'"
+            ]
+        }
+        ],
+        "distribute": 
+        [
+            {   
+                "type": "SharedImage",
+                "galleryImageId": "/subscriptions/<subscriptionID>/resourceGroups/<rgName>/providers/Microsoft.Compute/galleries/<compute_gallery>/images/<image_name>",
+                "runOutputName": "ubu1804CIShardened",
+                "artifactTags": {
+                    "source": "azureVmImageBuilder",
+                    "baseosimg": "ubuntu1804"
+                },
+                "replicationRegions": [
+                  "southeastasia",
+                  "southindia"
+                ]
+            }
+        ]
+    }
+}
